@@ -14,7 +14,11 @@ class ListaComEstado extends StatelessWidget {
   final Future<void> Function() onAtualizar;
   final IndexedWidgetBuilder itemBuilder;
 
+  /// Conteúdo opcional exibido entre a busca e a lista (ex.: filtros).
+  final Widget? cabecalho;
+
   const ListaComEstado({
+    this.cabecalho,
     super.key,
     required this.carregando,
     required this.erro,
@@ -59,6 +63,7 @@ class ListaComEstado extends StatelessWidget {
             onChanged: onBuscar,
           ),
         ),
+        if (cabecalho != null) cabecalho!,
         if (carregando) const LinearProgressIndicator(),
         Expanded(
           child: RefreshIndicator(

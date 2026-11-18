@@ -1,36 +1,66 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import 'cliente/cliente_list_view.dart';
-import 'fornecedor/fornecedor_list_view.dart';
-import 'item/item_list_view.dart';
+import '../models/orcamento.dart';
+import '../viewmodels/navegacao_viewmodel.dart';
+import '../viewmodels/orcamento_viewmodel.dart';
+import 'cadastros_page.dart';
+import 'dashboard/dashboard_page.dart';
+import 'orcamento/orcamento_list_view.dart';
 
-/// Tela principal com navegação por abas (DefaultTabController + TabBar +
-/// TabBarView). Cada aba é uma View ligada ao seu ViewModel via Provider.
+/// Estrutura principal: NavigationBar inferior com Início, Orçamentos e
+/// Cadastros. O destino atual fica no NavegacaoViewModel, então qualquer
+/// tela (ex.: um card do painel) pode trocar de destino.
+///
+/// O IndexedStack mantém as três telas montadas: ao voltar para uma aba, a
+/// rolagem e os filtros continuam onde estavam.
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 3,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('MovelControl'),
-          bottom: const TabBar(
-            tabs: [
-              Tab(icon: Icon(Icons.inventory_2_outlined), text: 'Itens'),
-              Tab(icon: Icon(Icons.local_shipping_outlined), text: 'Fornecedores'),
-              Tab(icon: Icon(Icons.people_outline), text: 'Clientes'),
-            ],
+    final nav = context.watch<NavegacaoViewModel>();
+    final emAberto = context.select<OrcamentoViewModel, int>(
+        (vm) => vm.contarPorStatus(StatusOrcamento.emAndamento));
+
+    return Scaffold(
+      body: IndexedStack(
+        index: nav.destino.index,
+        children: const [
+          DashboardPage(),
+          OrcamentoListView(),
+          CadastrosPage(),
+        ],
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: nav.destino.index,
+        onDestinationSelected: (i) => nav.irPara(Destino.values[i]),
+        destinations: [
+          const NavigationDestination(
+            icon: Icon(Icons.dashboard_outlined),
+            selectedIcon: Icon(Icons.dashboard),
+            label: 'Início',
           ),
-        ),
-        body: const TabBarView(
-          children: [
-            ItemListView(),
-            FornecedorListView(),
-            ClienteListView(),
-          ],
-        ),
+          NavigationDestination(
+            // Selo com a quantidade de orçamentos em aberto.
+            icon: Badge(
+              isLabelVisible: emAberto > 0,
+              label: Text('$emAberto'),
+              child: const Icon(Icons.request_quote_outlined),
+            ),
+            selectedIcon: Badge(
+              isLabelVisible: emAberto > 0,
+              label: Text('$emAberto'),
+              child: const Icon(Icons.request_quote),
+            ),
+            label: 'Orçamentos',
+          ),
+          const NavigationDestination(
+            icon: Icon(Icons.folder_open_outlined),
+            selectedIcon: Icon(Icons.folder),
+            label: 'Cadastros',
+          ),
+        ],
       ),
     );
   }

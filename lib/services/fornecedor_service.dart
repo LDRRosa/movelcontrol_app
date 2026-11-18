@@ -1,4 +1,5 @@
 import '../models/fornecedor.dart';
+import '../models/pedido_fornecedor.dart';
 import 'api_client.dart';
 
 /// Encapsula os endpoints /fornecedor da API.
@@ -24,6 +25,16 @@ class FornecedorService {
   }
 
   Future<void> excluir(int id) => _api.delete('/fornecedor/deletar/$id');
+
+  /// Pedidos de compra feitos ao fornecedor (lista vazia se não houver).
+  Future<List<PedidoFornecedor>> listarPedidos(int fornecedorId) async {
+    final dados = await _api.get('/pFornecedor/buscar/fornecedor/$fornecedorId');
+    if (dados is! List) return [];
+    return dados
+        .whereType<Map<String, dynamic>>()
+        .map(PedidoFornecedor.fromJson)
+        .toList();
+  }
 
   /// /fornecedor/buscartudo devolve uma coleção HATEOAS no formato HAL:
   /// { "_embedded": { "fornecedorResponseDTOList": [ ... ] } }.

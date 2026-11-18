@@ -6,17 +6,16 @@ import '../../utils/formatadores.dart';
 import '../../viewmodels/cliente_viewmodel.dart';
 import '../widgets/dialogos.dart';
 import '../widgets/lista_com_estado.dart';
-import 'cliente_form_page.dart';
+import '../../rotas.dart';
 
 /// Aba "Clientes" (pessoa física).
 class ClienteListView extends StatelessWidget {
   const ClienteListView({super.key});
 
-  void _abrirFormulario(BuildContext context, [Cliente? cliente]) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => ClienteFormPage(cliente: cliente)),
-    );
+  /// Cliente existente abre o detalhe (com histórico); sem cliente, o cadastro.
+  void _abrir(BuildContext context, [Cliente? cliente]) {
+    Navigator.pushNamed(context,
+        cliente == null ? Rotas.clienteNovo : Rotas.cliente(cliente.id!));
   }
 
   Future<void> _excluir(BuildContext context, Cliente cliente) async {
@@ -59,7 +58,7 @@ class ClienteListView extends StatelessWidget {
                     '${c.telefone} • ${c.email}',
                   ),
                   isThreeLine: true,
-                  onTap: temId ? () => _abrirFormulario(context, c) : null,
+                  onTap: temId ? () => _abrir(context, c) : null,
                   trailing: IconButton(
                     tooltip: 'Excluir',
                     icon: const Icon(Icons.delete_outline),
@@ -74,7 +73,7 @@ class ClienteListView extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         heroTag: 'fab_cliente',
         tooltip: 'Novo cliente',
-        onPressed: () => _abrirFormulario(context),
+        onPressed: () => _abrir(context),
         child: const Icon(Icons.add),
       ),
     );

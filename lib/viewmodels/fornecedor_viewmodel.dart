@@ -22,6 +22,13 @@ class FornecedorViewModel extends ChangeNotifier {
   String? get erro => _erro;
   bool get vazio => _fornecedores.isEmpty;
 
+  Fornecedor? buscarPorId(int id) {
+    for (final f in _fornecedores) {
+      if (f.id == id) return f;
+    }
+    return null;
+  }
+
   List<Fornecedor> get fornecedores {
     final termo = _filtro.toLowerCase();
     final filtrados = termo.isEmpty

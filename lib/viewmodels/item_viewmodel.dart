@@ -21,14 +21,48 @@ class ItemViewModel extends ChangeNotifier {
   String? get erro => _erro;
   bool get vazio => _itens.isEmpty;
 
+  /// Todos os itens, ignorando a busca da aba (usado ao montar orçamentos).
+  List<Item> get todos => List.unmodifiable(_itens);
+
+  Item? buscarPorId(int id) {
+    for (final i in _itens) {
+      if (i.id == id) return i;
+    }
+    return null;
+  }
+
+  // ---------- Estoque baixo ----------
+
+  /// Quantidade a partir da qual o item é considerado com estoque baixo.
+  /// A API não tem esse campo; o valor é uma regra do app.
+  static const int estoqueMinimo = 5;
+
+  bool _somenteEstoqueBaixo = false;
+  bool get somenteEstoqueBaixo => _somenteEstoqueBaixo;
+
+  static bool estaComEstoqueBaixo(Item item) =>
+      item.quantidadeEstoque < estoqueMinimo;
+
+  /// Itens abaixo do mínimo, do menor estoque para o maior.
+  List<Item> get itensEstoqueBaixo => List.unmodifiable(
+      _itens.where(estaComEstoqueBaixo).toList()
+        ..sort((a, b) => a.quantidadeEstoque.compareTo(b.quantidadeEstoque)));
+
+  void mostrarSomenteEstoqueBaixo(bool valor) {
+    _somenteEstoqueBaixo = valor;
+    notifyListeners();
+  }
+
   /// Lista exposta para a View: somente leitura e já filtrada.
   List<Item> get itens {
     final termo = _filtro.toLowerCase();
-    final filtrados = termo.isEmpty
-        ? _itens
-        : _itens.where((i) =>
-            i.nome.toLowerCase().contains(termo) ||
-            i.descricao.toLowerCase().contains(termo));
+    final filtrados = _itens.where((i) {
+      final buscaOk = termo.isEmpty ||
+          i.nome.toLowerCase().contains(termo) ||
+          i.descricao.toLowerCase().contains(termo);
+      final estoqueOk = !_somenteEstoqueBaixo || estaComEstoqueBaixo(i);
+      return buscaOk && estoqueOk;
+    });
     return List.unmodifiable(filtrados);
   }
 

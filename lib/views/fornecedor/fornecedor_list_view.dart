@@ -6,18 +6,19 @@ import '../../utils/formatadores.dart';
 import '../../viewmodels/fornecedor_viewmodel.dart';
 import '../widgets/dialogos.dart';
 import '../widgets/lista_com_estado.dart';
-import 'fornecedor_form_page.dart';
+import '../../rotas.dart';
 
 /// Aba "Fornecedores".
 class FornecedorListView extends StatelessWidget {
   const FornecedorListView({super.key});
 
-  void _abrirFormulario(BuildContext context, [Fornecedor? fornecedor]) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-          builder: (_) => FornecedorFormPage(fornecedor: fornecedor)),
-    );
+  /// Fornecedor existente abre o detalhe (com pedidos); sem ele, o cadastro.
+  void _abrir(BuildContext context, [Fornecedor? fornecedor]) {
+    Navigator.pushNamed(
+        context,
+        fornecedor == null
+            ? Rotas.fornecedorNovo
+            : Rotas.fornecedor(fornecedor.id!));
   }
 
   Future<void> _excluir(BuildContext context, Fornecedor fornecedor) async {
@@ -58,7 +59,7 @@ class FornecedorListView extends StatelessWidget {
                     '${f.telefone} • ${f.email}',
                   ),
                   isThreeLine: true,
-                  onTap: () => _abrirFormulario(context, f),
+                  onTap: () => _abrir(context, f),
                   trailing: IconButton(
                     tooltip: 'Excluir',
                     icon: const Icon(Icons.delete_outline),
@@ -73,7 +74,7 @@ class FornecedorListView extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         heroTag: 'fab_fornecedor',
         tooltip: 'Novo fornecedor',
-        onPressed: () => _abrirFormulario(context),
+        onPressed: () => _abrir(context),
         child: const Icon(Icons.add),
       ),
     );

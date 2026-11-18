@@ -1,17 +1,23 @@
 # MovelControl App (Flutter)
 
-App Flutter que consome a API REST **MovelControl** (Spring Boot) e faz o CRUD de
-**Itens do estoque**, **Fornecedores** e **Clientes (pessoa física)**.
+App Flutter que consome a API REST **MovelControl** (Spring Boot): monta
+**Orçamentos** (cliente + itens do estoque, total em tempo real, status) e faz o
+CRUD de **Itens do estoque**, **Fornecedores** e **Clientes (pessoa física)**.
 
 Conceitos aplicados:
 
 | Conceito | Onde |
 |---|---|
-| Abas | `views/home_page.dart`: `DefaultTabController` + `TabBar` + `TabBarView` |
-| Listas | `views/*/..._list_view.dart`: `ListView.builder`, busca, puxar para atualizar |
-| Estado (Provider) | `main.dart`: `MultiProvider`/`ChangeNotifierProvider`; Views usam `Consumer`, `context.watch` e `context.read` |
+| Navegação inferior | `views/home_page.dart`: `NavigationBar` (Início, Orçamentos, Cadastros) + `IndexedStack`; destino guardado no `NavegacaoViewModel` |
+| Abas | `views/cadastros_page.dart`: `TabBar` + `TabBarView` com `TabController` controlado pelo ViewModel |
+| Rotas nomeadas | `rotas.dart`: mapa central (`/orcamentos/7`, `/clientes/3/editar`...) com `onGenerateRoute` e pattern matching |
+| Listas | `views/*/..._list_view.dart`: `ListView.builder`, busca, filtros, puxar para atualizar |
+| Estado (Provider) | `main.dart`: `MultiProvider`/`ChangeNotifierProvider`; Views usam `Consumer`, `context.watch`, `context.select` e `context.read` |
+| Estado derivado | `DashboardViewModel` via `ProxyProvider3`: recalculado sempre que itens, clientes ou orçamentos mudam |
 | MVVM | `models/` → `services/` → `viewmodels/` (`ChangeNotifier`) → `views/` |
-| Validação | `Form` + `GlobalKey<FormState>` + `TextFormField.validator` (`utils/validadores.dart`) |
+| ViewModel combinando dados | `OrcamentoFormViewModel` (clientes + itens) e `ClienteDetalhePage` (cliente + histórico de orçamentos) |
+| Provider com escopo de tela | `rotas.dart`: formulário de orçamento e detalhe do fornecedor recebem seu próprio `ChangeNotifierProvider` na rota |
+| Validação | `Form` + `GlobalKey<FormState>` + `TextFormField.validator` (`utils/validadores.dart`); `FormField` customizado para cliente e lista de itens do orçamento |
 | Consumo de API | `services/api_client.dart` (pacote `http`, GET/POST/PUT/DELETE) |
 
 ## Estrutura

@@ -27,6 +27,13 @@ class Formatadores {
   static String moeda(double valor) =>
       'R\$ ${valor.toStringAsFixed(2).replaceAll('.', ',')}';
 
+  /// dd/MM/aaaa
+  static String data(DateTime? data) {
+    if (data == null) return '--/--/----';
+    String dois(int n) => n.toString().padLeft(2, '0');
+    return '${dois(data.day)}/${dois(data.month)}/${data.year}';
+  }
+
   /// Converte "12,50" ou "12.50" em double.
   static double? parseDecimal(String texto) =>
       double.tryParse(texto.trim().replaceAll(',', '.'));

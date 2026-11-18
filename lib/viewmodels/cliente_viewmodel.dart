@@ -22,6 +22,16 @@ class ClienteViewModel extends ChangeNotifier {
   String? get erro => _erro;
   bool get vazio => _clientes.isEmpty;
 
+  /// Todos os clientes, ignorando a busca da aba (usado ao montar orçamentos).
+  List<Cliente> get todos => List.unmodifiable(_clientes);
+
+  Cliente? buscarPorId(int id) {
+    for (final c in _clientes) {
+      if (c.id == id) return c;
+    }
+    return null;
+  }
+
   List<Cliente> get clientes {
     final termo = _filtro.toLowerCase();
     final filtrados = termo.isEmpty
