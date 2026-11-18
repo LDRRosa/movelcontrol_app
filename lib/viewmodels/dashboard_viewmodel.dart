@@ -22,8 +22,14 @@ class DashboardViewModel {
   final List<Orcamento> orcamentosRecentes;
   final bool carregando;
   final String? erro;
+  final int estoqueMinimo;
+
+  /// Aviso quando algum dos dados exibidos veio do cache (sem conexão).
+  final String? avisoOffline;
 
   const DashboardViewModel._({
+    required this.estoqueMinimo,
+    required this.avisoOffline,
     required this.totalItens,
     required this.unidadesEmEstoque,
     required this.valorEstoque,
@@ -55,6 +61,9 @@ class DashboardViewModel {
       ..sort((a, b) => (b.id ?? 0).compareTo(a.id ?? 0));
 
     return DashboardViewModel._(
+      estoqueMinimo: itens.estoqueMinimo,
+      avisoOffline:
+          itens.avisoOffline ?? orcamentos.avisoOffline ?? clientes.avisoOffline,
       totalItens: listaItens.length,
       unidadesEmEstoque:
           listaItens.fold(0, (s, i) => s + i.quantidadeEstoque),

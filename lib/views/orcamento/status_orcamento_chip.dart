@@ -28,7 +28,8 @@ class StatusOrcamentoChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: Color.alphaBlend(cor.withAlpha(30), Colors.white),
+        // Cor translúcida: funciona no tema claro e no escuro.
+        color: cor.withAlpha(40),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: cor),
       ),

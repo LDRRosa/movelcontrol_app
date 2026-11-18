@@ -42,11 +42,31 @@ class ClienteListView extends StatelessWidget {
             dicaBusca: 'Buscar por nome ou CPF',
             onBuscar: vm.filtrar,
             onAtualizar: vm.carregar,
+            avisoOffline: vm.avisoOffline,
+            acaoBusca: MenuOrdenacao<OrdemNome>(
+              selecionada: vm.ordem,
+              opcoes: OrdemNome.values,
+              rotulo: (o) => o.rotulo,
+              onSelecionar: vm.ordenarPor,
+            ),
             itemBuilder: (context, index) {
               final c = clientes[index];
               // Sem id (não veio nos links da API) não há como editar/excluir.
               final temId = c.id != null;
-              return Card(
+              return Dismissible(
+                key: ValueKey('cliente-${c.id ?? c.cpf}'),
+                direction: temId
+                    ? DismissDirection.endToStart
+                    : DismissDirection.none,
+                background: const FundoExcluir(),
+                onDismissed: (_) => excluirComDesfazer(
+                  context: context,
+                  descricao: c.nome,
+                  ocultar: () => vm.ocultar(c.id!),
+                  reexibir: () => vm.reexibir(c.id!),
+                  excluir: () => vm.excluir(c),
+                ),
+                child: Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: ListTile(
                   leading: CircleAvatar(
@@ -65,6 +85,7 @@ class ClienteListView extends StatelessWidget {
                     onPressed: temId ? () => _excluir(context, c) : null,
                   ),
                 ),
+              ),
               );
             },
           );

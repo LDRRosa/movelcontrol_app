@@ -11,6 +11,7 @@ import '../../viewmodels/navegacao_viewmodel.dart';
 import '../../viewmodels/orcamento_viewmodel.dart';
 import '../orcamento/orcamento_tile.dart';
 import '../widgets/detalhe_widgets.dart';
+import '../widgets/lista_com_estado.dart' show AvisoOffline;
 
 /// Destino "Início": indicadores do negócio, alertas e atalhos.
 class DashboardPage extends StatelessWidget {
@@ -47,6 +48,11 @@ class DashboardPage extends StatelessWidget {
             onPressed: () => _atualizarTudo(context),
             icon: const Icon(Icons.refresh),
           ),
+          IconButton(
+            tooltip: 'Configurações',
+            onPressed: () => Navigator.pushNamed(context, Rotas.configuracoes),
+            icon: const Icon(Icons.settings_outlined),
+          ),
         ],
       ),
       body: RefreshIndicator(
@@ -56,6 +62,14 @@ class DashboardPage extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
           children: [
             if (painel.carregando) const LinearProgressIndicator(),
+            if (painel.avisoOffline != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: AvisoOffline(texto: painel.avisoOffline!),
+                ),
+              ),
             if (painel.erro != null)
               Card(
                 color: tema.colorScheme.errorContainer,
@@ -108,7 +122,7 @@ class DashboardPage extends StatelessWidget {
                   icone: Icons.warning_amber_rounded,
                   titulo: 'Estoque baixo',
                   valor: '${painel.itensEstoqueBaixo.length}',
-                  detalhe: 'abaixo de ${ItemViewModel.estoqueMinimo} unid.',
+                  detalhe: 'abaixo de ${painel.estoqueMinimo} unid.',
                   alerta: painel.itensEstoqueBaixo.isNotEmpty,
                   onTap: () => _verEstoqueBaixo(context),
                 ),

@@ -120,6 +120,25 @@ class Orcamento {
         'itens': itens.map((i) => i.toJson()).toList(),
       };
 
+  /// Formato salvo no cache offline: o mesmo da resposta da API,
+  /// para ser lido de volta por fromJson.
+  Map<String, dynamic> toCacheJson() => {
+        'id': id,
+        'dataCriacao': dataCriacao == null ? null : _formatarData(dataCriacao!),
+        'status': status,
+        'valorTotal': valorTotal,
+        'cliente': {'id': clienteId, 'nome': clienteNome},
+        'itens': [
+          for (final i in itens)
+            {
+              'itemId': i.itemId,
+              'nomeItem': i.nome,
+              'precoUnitarioItem': i.precoUnitario,
+              'quantity': i.quantidade,
+            }
+        ],
+      };
+
   /// A API devolve "2026-11-18" na listagem e "2026-11-18T20:31:19+00:00"
   /// ao criar. Usamos só a parte da data para não deslocar o dia pelo fuso.
   static DateTime? _lerData(dynamic valor) {

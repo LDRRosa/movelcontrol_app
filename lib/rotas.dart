@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'models/cliente.dart';
+import 'repositories/configuracoes_repository.dart';
 import 'viewmodels/cliente_viewmodel.dart';
 import 'viewmodels/fornecedor_detalhe_viewmodel.dart';
 import 'viewmodels/fornecedor_viewmodel.dart';
@@ -10,6 +11,7 @@ import 'viewmodels/orcamento_form_viewmodel.dart';
 import 'viewmodels/orcamento_viewmodel.dart';
 import 'views/cliente/cliente_detalhe_page.dart';
 import 'views/cliente/cliente_form_page.dart';
+import 'views/configuracoes/configuracoes_page.dart';
 import 'views/fornecedor/fornecedor_detalhe_page.dart';
 import 'views/fornecedor/fornecedor_form_page.dart';
 import 'views/home_page.dart';
@@ -42,6 +44,8 @@ class Rotas {
   static String orcamento(int id) => '/orcamentos/$id';
   static String orcamentoEditar(int id) => '/orcamentos/$id/editar';
 
+  static const configuracoes = '/configuracoes';
+
   /// Usado em MaterialApp.onGenerateRoute.
   static Route<dynamic> gerar(RouteSettings settings) {
     final segmentos = Uri.parse(settings.name ?? '/').pathSegments;
@@ -71,17 +75,19 @@ class Rotas {
           (f) => FornecedorFormPage(fornecedor: f)),
       ['orcamentos', 'novo'] => ChangeNotifierProvider(
           create: (ctx) {
-            final vm = OrcamentoFormViewModel();
             final clienteId = settings.arguments;
-            if (clienteId is int) {
-              final Cliente? cliente =
-                  ctx.read<ClienteViewModel>().buscarPorId(clienteId);
-              if (cliente != null) vm.selecionarCliente(cliente);
-            }
-            return vm;
+            final Cliente? cliente = clienteId is int
+                ? ctx.read<ClienteViewModel>().buscarPorId(clienteId)
+                : null;
+            // O rascunho (shared_preferences) só vale para orçamentos novos.
+            return OrcamentoFormViewModel(
+              clienteInicial: cliente,
+              rascunho: RascunhoOrcamentoRepository(),
+            );
           },
           child: const OrcamentoFormPage(),
         ),
+      ['configuracoes'] => const ConfiguracoesPage(),
       ['orcamentos', final id] when _ehNumero(id) =>
         OrcamentoDetalhePage(orcamentoId: int.parse(id)),
       ['orcamentos', final id, 'editar'] => _comRegistro(

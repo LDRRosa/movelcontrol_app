@@ -38,4 +38,7 @@ class Fornecedor {
         'email': email,
         'endereco': endereco?.toJson(),
       };
+
+  /// Formato salvo no cache offline (inclui o id; lido por fromJson).
+  Map<String, dynamic> toCacheJson() => {...toJson(), 'id': id};
 }

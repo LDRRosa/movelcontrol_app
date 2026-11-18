@@ -6,6 +6,7 @@ import 'package:http/testing.dart';
 import 'package:movelcontrol_app/models/pedido_fornecedor.dart';
 import 'package:movelcontrol_app/rotas.dart';
 import 'package:movelcontrol_app/services/api_client.dart';
+import 'package:movelcontrol_app/services/cache_local_service.dart';
 import 'package:movelcontrol_app/services/cliente_service.dart';
 import 'package:movelcontrol_app/services/fornecedor_service.dart';
 import 'package:movelcontrol_app/services/item_service.dart';
@@ -84,9 +85,9 @@ void main() {
   late OrcamentoViewModel orcamentos;
 
   setUp(() async {
-    itens = ItemViewModel(service: ItemService(api: api));
-    clientes = ClienteViewModel(service: ClienteService(api: api));
-    orcamentos = OrcamentoViewModel(service: OrcamentoService(api: api));
+    itens = ItemViewModel(cache: MemoriaCacheLocal(), service: ItemService(api: api));
+    clientes = ClienteViewModel(cache: MemoriaCacheLocal(), service: ClienteService(api: api));
+    orcamentos = OrcamentoViewModel(cache: MemoriaCacheLocal(), service: OrcamentoService(api: api));
     await Future.wait(
         [itens.carregar(), clientes.carregar(), orcamentos.carregar()]);
   });

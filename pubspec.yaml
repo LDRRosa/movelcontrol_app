@@ -12,6 +12,12 @@ dependencies:
   http: ^1.2.2
   provider: ^6.1.5+1
   cupertino_icons: ^1.0.8
+  # Persistência local (Aula 13)
+  shared_preferences: ^2.5.3   # configurações e rascunho do orçamento
+  sqflite: ^2.4.2              # cache offline das listas (Android/iOS/macOS)
+  path: ^1.9.1                 # monta o caminho do arquivo do banco
+  sqflite_common_ffi: ^2.3.4   # sqflite no Windows/Linux (desktop)
+  sqlite3_flutter_libs: ^0.5.24 # embarca a biblioteca SQLite no desktop
 
 dev_dependencies:
   flutter_test:

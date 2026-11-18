@@ -7,6 +7,7 @@ import 'package:movelcontrol_app/models/cliente.dart';
 import 'package:movelcontrol_app/models/item.dart';
 import 'package:movelcontrol_app/models/orcamento.dart';
 import 'package:movelcontrol_app/services/api_client.dart';
+import 'package:movelcontrol_app/services/cache_local_service.dart';
 import 'package:movelcontrol_app/services/orcamento_service.dart';
 import 'package:movelcontrol_app/viewmodels/orcamento_form_viewmodel.dart';
 import 'package:movelcontrol_app/viewmodels/orcamento_viewmodel.dart';
@@ -119,7 +120,7 @@ void main() {
         httpClient: MockClient((_) async => http.Response.bytes(
             utf8.encode(_jsonApi), 200,
             headers: {'content-type': 'application/json'})));
-    final vm = OrcamentoViewModel(service: OrcamentoService(api: api));
+    final vm = OrcamentoViewModel(cache: MemoriaCacheLocal(), service: OrcamentoService(api: api));
 
     await vm.carregar();
     expect(vm.orcamentos.map((o) => o.id), [2, 1]); // mais recentes primeiro

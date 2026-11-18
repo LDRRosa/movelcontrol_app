@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:movelcontrol_app/models/item.dart';
 import 'package:movelcontrol_app/services/api_client.dart';
+import 'package:movelcontrol_app/services/cache_local_service.dart';
 import 'package:movelcontrol_app/services/cliente_service.dart';
 import 'package:movelcontrol_app/services/fornecedor_service.dart';
 import 'package:movelcontrol_app/services/item_service.dart';
@@ -80,8 +81,7 @@ void main() {
       return http.Response(jsonEncode({...corpo, 'id': 2}), 200, headers: _json);
     });
 
-    final vm = ItemViewModel(
-        service: ItemService(api: ApiClient(httpClient: mock)));
+    final vm = ItemViewModel(cache: MemoriaCacheLocal(), service: ItemService(api: ApiClient(httpClient: mock)));
 
     await vm.carregar();
     expect(vm.itens.single.quantidadeEstoque, 10);

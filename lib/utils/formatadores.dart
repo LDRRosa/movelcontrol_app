@@ -24,8 +24,7 @@ class Formatadores {
     return '${d.substring(0, 5)}-${d.substring(5)}';
   }
 
-  static String moeda(double valor) =>
-      'R\$ ${valor.toStringAsFixed(2).replaceAll('.', ',')}';
+  static String moeda(double valor) => 'R\$ ${moedaSemSimbolo(valor)}';
 
   /// dd/MM/aaaa
   static String data(DateTime? data) {
@@ -33,6 +32,34 @@ class Formatadores {
     String dois(int n) => n.toString().padLeft(2, '0');
     return '${dois(data.day)}/${dois(data.month)}/${data.year}';
   }
+
+  /// dd/MM/aaaa às HH:mm
+  static String dataHora(DateTime? data) {
+    if (data == null) return 'data desconhecida';
+    String dois(int n) => n.toString().padLeft(2, '0');
+    return '${Formatadores.data(data)} às ${dois(data.hour)}:${dois(data.minute)}';
+  }
+
+  /// Valor sem o símbolo, no formato da máscara de moeda: 1.234,56
+  static String moedaSemSimbolo(double valor) {
+    final centavos = (valor * 100).round();
+    return _agruparMilhares(centavos ~/ 100) +
+        ',${(centavos % 100).toString().padLeft(2, '0')}';
+  }
+
+  static String _agruparMilhares(int inteiro) {
+    final texto = inteiro.toString();
+    final buffer = StringBuffer();
+    for (var i = 0; i < texto.length; i++) {
+      if (i > 0 && (texto.length - i) % 3 == 0) buffer.write('.');
+      buffer.write(texto[i]);
+    }
+    return buffer.toString();
+  }
+
+  /// Converte o texto da máscara de moeda ("1.234,56" ou "12,5") em double.
+  static double? parseMoeda(String texto) => double.tryParse(
+      texto.trim().replaceAll('.', '').replaceAll(',', '.'));
 
   /// Converte "12,50" ou "12.50" em double.
   static double? parseDecimal(String texto) =>

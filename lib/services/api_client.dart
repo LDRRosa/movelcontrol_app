@@ -21,14 +21,22 @@ class ApiException implements Exception {
 class ApiClient {
   final http.Client _http;
 
-  ApiClient({http.Client? httpClient}) : _http = httpClient ?? http.Client();
+  /// URL fixa para este cliente (ex.: testar uma URL antes de salvá-la).
+  /// Sem ela, usa ApiConfig.baseUrl no momento de cada requisição.
+  final String? _urlFixa;
+
+  ApiClient({http.Client? httpClient, String? baseUrl})
+      : _http = httpClient ?? http.Client(),
+        _urlFixa = baseUrl;
 
   static const Map<String, String> _headers = {
     'Content-Type': 'application/json; charset=UTF-8',
     'Accept': 'application/json',
   };
 
-  Uri _uri(String caminho) => Uri.parse('${ApiConfig.baseUrl}$caminho');
+  String get _base => _urlFixa ?? ApiConfig.baseUrl;
+
+  Uri _uri(String caminho) => Uri.parse('$_base$caminho');
 
   Future<dynamic> get(String caminho) =>
       _enviar(() => _http.get(_uri(caminho), headers: _headers));
@@ -49,11 +57,10 @@ class ApiClient {
     try {
       response = await requisicao().timeout(ApiConfig.timeout);
     } on TimeoutException {
-      throw ApiException(
-          'Tempo esgotado ao acessar a API em ${ApiConfig.baseUrl}.');
+      throw ApiException('Tempo esgotado ao acessar a API em $_base.');
     } catch (_) {
       throw ApiException('Não foi possível conectar à API em '
-          '${ApiConfig.baseUrl}. Verifique se o servidor está rodando.');
+          '$_base. Verifique se o servidor está rodando.');
     }
 
     // bodyBytes + utf8 garante acentuação correta.

@@ -1,26 +1,39 @@
 import 'package:flutter/foundation.dart';
 
 import '../models/fornecedor.dart';
+import '../repositories/repositorio_com_cache.dart';
 import '../services/api_client.dart';
+import '../services/cache_local_service.dart';
 import '../services/fornecedor_service.dart';
+import 'cliente_viewmodel.dart' show OrdemNome;
+import 'lista_offline_mixin.dart';
 
 /// Estado e comandos da aba de Fornecedores.
-class FornecedorViewModel extends ChangeNotifier {
+class FornecedorViewModel extends ChangeNotifier with ListaOffline {
   final FornecedorService _service;
+  final RepositorioComCache<Fornecedor> _repositorio;
 
-  FornecedorViewModel({FornecedorService? service})
-      : _service = service ?? FornecedorService();
+  FornecedorViewModel({FornecedorService? service, CacheLocal? cache})
+      : _service = service ?? FornecedorService(),
+        _repositorio = RepositorioComCache<Fornecedor>(
+          chave: 'fornecedores',
+          cache: cache ?? CacheLocal.padrao(),
+          paraJson: (f) => f.toCacheJson(),
+          deJson: Fornecedor.fromJson,
+        );
 
   List<Fornecedor> _fornecedores = [];
   bool _carregando = false;
   bool _salvando = false;
   String? _erro;
   String _filtro = '';
+  OrdemNome _ordem = OrdemNome.az;
 
   bool get carregando => _carregando;
   bool get salvando => _salvando;
   String? get erro => _erro;
   bool get vazio => _fornecedores.isEmpty;
+  OrdemNome get ordem => _ordem;
 
   Fornecedor? buscarPorId(int id) {
     for (final f in _fornecedores) {
@@ -31,15 +44,25 @@ class FornecedorViewModel extends ChangeNotifier {
 
   List<Fornecedor> get fornecedores {
     final termo = _filtro.toLowerCase();
-    final filtrados = termo.isEmpty
-        ? _fornecedores
-        : _fornecedores.where((f) =>
-            f.nome.toLowerCase().contains(termo) || f.cnpj.contains(termo));
-    return List.unmodifiable(filtrados);
+    final filtrados = _fornecedores
+        .where((f) => !estaOculto(f.id))
+        .where((f) =>
+            termo.isEmpty ||
+            f.nome.toLowerCase().contains(termo) ||
+            f.cnpj.contains(termo))
+        .toList()
+      ..sort((a, b) => a.nome.toLowerCase().compareTo(b.nome.toLowerCase()));
+    return List.unmodifiable(
+        _ordem == OrdemNome.az ? filtrados : filtrados.reversed);
   }
 
   void filtrar(String texto) {
     _filtro = texto.trim();
+    notifyListeners();
+  }
+
+  void ordenarPor(OrdemNome ordem) {
+    _ordem = ordem;
     notifyListeners();
   }
 
@@ -48,7 +71,9 @@ class FornecedorViewModel extends ChangeNotifier {
     _erro = null;
     notifyListeners();
     try {
-      _fornecedores = await _service.listar();
+      final resultado = await _repositorio.carregar(_service.listar);
+      _fornecedores = resultado.dados;
+      registrarOrigem(resultado);
     } on ApiException catch (e) {
       _erro = e.mensagem;
     } finally {
@@ -84,6 +109,7 @@ class FornecedorViewModel extends ChangeNotifier {
       await _service.excluir(fornecedor.id!);
       _fornecedores =
           _fornecedores.where((f) => f.id != fornecedor.id).toList();
+      reexibir(fornecedor.id!);
       notifyListeners();
       return null;
     } on ApiException catch (e) {

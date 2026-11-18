@@ -1,76 +1,61 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
-import '../../models/endereco.dart';
-import '../../utils/formatadores.dart';
+import '../../utils/mascaras.dart';
 import '../../utils/validadores.dart';
+import '../../viewmodels/endereco_form_viewmodel.dart';
 
-/// Agrupa os TextEditingControllers do endereço, usados nos formulários
-/// de Fornecedor e Cliente.
-class EnderecoControllers {
-  final cep = TextEditingController();
-  final rua = TextEditingController();
-  final numero = TextEditingController();
-  final complemento = TextEditingController();
-  final bairro = TextEditingController();
-
-  void preencher(Endereco? endereco) {
-    if (endereco == null) return;
-    cep.text = Formatadores.somenteDigitos(endereco.cep);
-    rua.text = endereco.rua;
-    numero.text = endereco.numero;
-    complemento.text = endereco.complemento ?? '';
-    bairro.text = endereco.bairro;
-  }
-
-  Endereco paraEndereco() => Endereco(
-        cep: Formatadores.cep(cep.text),
-        rua: rua.text.trim(),
-        numero: numero.text.trim(),
-        complemento:
-            complemento.text.trim().isEmpty ? null : complemento.text.trim(),
-        bairro: bairro.text.trim(),
-      );
-
-  void dispose() {
-    cep.dispose();
-    rua.dispose();
-    numero.dispose();
-    complemento.dispose();
-    bairro.dispose();
-  }
-}
-
-/// Campos de endereço com validação (limites conforme a tabela "endereco").
+/// Campos de endereço com máscara de CEP, busca automática no ViaCEP e
+/// validação (limites conforme a tabela "endereco" da API).
+///
+/// Usa ListenableBuilder (Aula 10) para reagir ao EnderecoFormViewModel
+/// enquanto o CEP é consultado.
 class EnderecoCampos extends StatelessWidget {
-  final EnderecoControllers controllers;
+  final EnderecoFormViewModel endereco;
 
-  const EnderecoCampos({super.key, required this.controllers});
+  const EnderecoCampos({super.key, required this.endereco});
 
   @override
   Widget build(BuildContext context) {
+    final tema = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Endereço', style: Theme.of(context).textTheme.titleMedium),
+        Text('Endereço', style: tema.textTheme.titleMedium),
         const SizedBox(height: 12),
-        TextFormField(
-          controller: controllers.cep,
-          decoration: const InputDecoration(
-            labelText: 'CEP *',
-            hintText: 'Somente números',
-            border: OutlineInputBorder(),
+        ListenableBuilder(
+          listenable: endereco,
+          builder: (context, _) => TextFormField(
+            controller: endereco.cep,
+            decoration: InputDecoration(
+              labelText: 'CEP *',
+              hintText: '00000-000',
+              helperText: endereco.cidadeUf ??
+                  'Rua e bairro são preenchidos automaticamente',
+              errorText: endereco.erroCep,
+              border: const OutlineInputBorder(),
+              suffixIcon: endereco.buscando
+                  ? const Padding(
+                      padding: EdgeInsets.all(12),
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                  : IconButton(
+                      tooltip: 'Buscar CEP',
+                      icon: const Icon(Icons.search),
+                      onPressed: endereco.buscarCep,
+                    ),
+            ),
+            keyboardType: TextInputType.number,
+            inputFormatters: [Mascaras.cep],
+            validator: Validadores.cep,
           ),
-          keyboardType: TextInputType.number,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            LengthLimitingTextInputFormatter(8),
-          ],
-          validator: Validadores.cep,
         ),
         const SizedBox(height: 12),
         TextFormField(
-          controller: controllers.rua,
+          controller: endereco.rua,
           decoration: const InputDecoration(
               labelText: 'Rua *', border: OutlineInputBorder()),
           validator: (v) => Validadores.obrigatorio(v, campo: 'Rua', max: 100),
@@ -81,7 +66,7 @@ class EnderecoCampos extends StatelessWidget {
           children: [
             Expanded(
               child: TextFormField(
-                controller: controllers.numero,
+                controller: endereco.numero,
                 decoration: const InputDecoration(
                     labelText: 'Número *', border: OutlineInputBorder()),
                 validator: (v) =>
@@ -92,7 +77,7 @@ class EnderecoCampos extends StatelessWidget {
             Expanded(
               flex: 2,
               child: TextFormField(
-                controller: controllers.complemento,
+                controller: endereco.complemento,
                 decoration: const InputDecoration(
                     labelText: 'Complemento', border: OutlineInputBorder()),
                 validator: (v) =>
@@ -103,7 +88,7 @@ class EnderecoCampos extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         TextFormField(
-          controller: controllers.bairro,
+          controller: endereco.bairro,
           decoration: const InputDecoration(
               labelText: 'Bairro *', border: OutlineInputBorder()),
           validator: (v) =>

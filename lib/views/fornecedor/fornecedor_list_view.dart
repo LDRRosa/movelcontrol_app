@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../models/fornecedor.dart';
 import '../../utils/formatadores.dart';
+import '../../viewmodels/cliente_viewmodel.dart' show OrdemNome;
 import '../../viewmodels/fornecedor_viewmodel.dart';
 import '../widgets/dialogos.dart';
 import '../widgets/lista_com_estado.dart';
@@ -47,9 +48,27 @@ class FornecedorListView extends StatelessWidget {
             dicaBusca: 'Buscar por nome ou CNPJ',
             onBuscar: vm.filtrar,
             onAtualizar: vm.carregar,
+            avisoOffline: vm.avisoOffline,
+            acaoBusca: MenuOrdenacao<OrdemNome>(
+              selecionada: vm.ordem,
+              opcoes: OrdemNome.values,
+              rotulo: (o) => o.rotulo,
+              onSelecionar: vm.ordenarPor,
+            ),
             itemBuilder: (context, index) {
               final f = fornecedores[index];
-              return Card(
+              return Dismissible(
+                key: ValueKey('fornecedor-${f.id}'),
+                direction: DismissDirection.endToStart,
+                background: const FundoExcluir(),
+                onDismissed: (_) => excluirComDesfazer(
+                  context: context,
+                  descricao: f.nome,
+                  ocultar: () => vm.ocultar(f.id!),
+                  reexibir: () => vm.reexibir(f.id!),
+                  excluir: () => vm.excluir(f),
+                ),
+                child: Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: ListTile(
                   leading: const CircleAvatar(child: Icon(Icons.local_shipping)),
@@ -66,6 +85,7 @@ class FornecedorListView extends StatelessWidget {
                     onPressed: () => _excluir(context, f),
                   ),
                 ),
+              ),
               );
             },
           );

@@ -48,7 +48,7 @@ class Validadores {
 
   static String? precoPositivo(String? valor) {
     if (valor == null || valor.trim().isEmpty) return 'Preço é obrigatório';
-    final numero = Formatadores.parseDecimal(valor);
+    final numero = Formatadores.parseMoeda(valor);
     if (numero == null) return 'Informe um valor numérico (ex.: 12,50)';
     if (numero <= 0) return 'O preço deve ser maior que zero';
     return null;

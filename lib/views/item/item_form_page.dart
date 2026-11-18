@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../models/item.dart';
 import '../../utils/formatadores.dart';
+import '../../utils/mascaras.dart';
 import '../../utils/validadores.dart';
 import '../../viewmodels/item_viewmodel.dart';
 import '../widgets/dialogos.dart';
@@ -36,7 +37,7 @@ class _ItemFormPageState extends State<ItemFormPage> {
       _nome.text = item.nome;
       _descricao.text = item.descricao;
       _unidade.text = item.unidadeMedida;
-      _preco.text = item.precoUnitario.toStringAsFixed(2).replaceAll('.', ',');
+      _preco.text = Formatadores.moedaSemSimbolo(item.precoUnitario);
       _quantidade.text = item.quantidadeEstoque.toString();
     }
   }
@@ -59,7 +60,7 @@ class _ItemFormPageState extends State<ItemFormPage> {
       nome: _nome.text.trim(),
       descricao: _descricao.text.trim(),
       unidadeMedida: _unidade.text.trim().toUpperCase(),
-      precoUnitario: Formatadores.parseDecimal(_preco.text)!,
+      precoUnitario: Formatadores.parseMoeda(_preco.text)!,
       quantidadeEstoque: int.parse(_quantidade.text.trim()),
     );
 
@@ -129,7 +130,7 @@ class _ItemFormPageState extends State<ItemFormPage> {
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: true),
                     inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+                      Mascaras.moeda, // digita-se pelos centavos: 1250 -> 12,50
                     ],
                     validator: Validadores.precoPositivo,
                   ),

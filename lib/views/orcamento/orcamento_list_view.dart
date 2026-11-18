@@ -42,13 +42,34 @@ class OrcamentoListView extends StatelessWidget {
             dicaBusca: 'Buscar por cliente ou nº do orçamento',
             onBuscar: vm.buscar,
             onAtualizar: vm.carregar,
-            cabecalho: _Filtros(vm: vm, quantidadeVisivel: orcamentos.length),
-            itemBuilder: (context, index) => _OrcamentoCard(
-              orcamento: orcamentos[index],
-              onTap: () => Navigator.pushNamed(
-                  context, Rotas.orcamento(orcamentos[index].id!)),
-              onExcluir: () => _excluir(context, orcamentos[index]),
+            avisoOffline: vm.avisoOffline,
+            acaoBusca: MenuOrdenacao<OrdemOrcamento>(
+              selecionada: vm.ordem,
+              opcoes: OrdemOrcamento.values,
+              rotulo: (o) => o.rotulo,
+              onSelecionar: vm.ordenarPor,
             ),
+            cabecalho: _Filtros(vm: vm, quantidadeVisivel: orcamentos.length),
+            itemBuilder: (context, index) {
+              final o = orcamentos[index];
+              return Dismissible(
+                key: ValueKey('orcamento-${o.id}'),
+                direction: DismissDirection.endToStart,
+                background: const FundoExcluir(),
+                onDismissed: (_) => excluirComDesfazer(
+                  context: context,
+                  descricao: 'Orçamento #${o.id}',
+                  ocultar: () => vm.ocultar(o.id!),
+                  reexibir: () => vm.reexibir(o.id!),
+                  excluir: () => vm.excluir(o),
+                ),
+                child: _OrcamentoCard(
+                  orcamento: o,
+                  onTap: () => Navigator.pushNamed(context, Rotas.orcamento(o.id!)),
+                  onExcluir: () => _excluir(context, o),
+                ),
+              );
+            },
           );
         },
       ),

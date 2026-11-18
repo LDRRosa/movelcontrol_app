@@ -48,6 +48,13 @@ class ItemListView extends StatelessWidget {
             dicaBusca: 'Buscar por nome ou descrição',
             onBuscar: vm.filtrar,
             onAtualizar: vm.carregar,
+            avisoOffline: vm.avisoOffline,
+            acaoBusca: MenuOrdenacao<OrdemItem>(
+              selecionada: vm.ordem,
+              opcoes: OrdemItem.values,
+              rotulo: (o) => o.rotulo,
+              onSelecionar: vm.ordenarPor,
+            ),
             cabecalho: Padding(
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
               child: Align(
@@ -63,8 +70,20 @@ class ItemListView extends StatelessWidget {
             ),
             itemBuilder: (context, index) {
               final item = itens[index];
-              final baixo = ItemViewModel.estaComEstoqueBaixo(item);
-              return Card(
+              final baixo = vm.estaComEstoqueBaixo(item);
+              // Arrastar para a esquerda exclui, com opção de desfazer.
+              return Dismissible(
+                key: ValueKey('item-${item.id}'),
+                direction: DismissDirection.endToStart,
+                background: const FundoExcluir(),
+                onDismissed: (_) => excluirComDesfazer(
+                  context: context,
+                  descricao: item.nome,
+                  ocultar: () => vm.ocultar(item.id!),
+                  reexibir: () => vm.reexibir(item.id!),
+                  excluir: () => vm.excluir(item),
+                ),
+                child: Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 // Alerta visual: fundo e borda avermelhados quando o estoque
                 // está abaixo do mínimo.
@@ -109,6 +128,7 @@ class ItemListView extends StatelessWidget {
                     onPressed: () => _excluir(context, item),
                   ),
                 ),
+              ),
               );
             },
           );

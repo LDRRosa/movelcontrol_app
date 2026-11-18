@@ -34,7 +34,22 @@ class _OrcamentoFormPageState extends State<OrcamentoFormPage> {
       final clientes = context.read<ClienteViewModel>();
       if (itens.vazio && !itens.carregando) itens.carregar();
       if (clientes.vazio && !clientes.carregando) clientes.carregar();
+      _restaurarRascunho();
     });
+  }
+
+  /// Se o app foi fechado no meio de um orçamento novo, continua dele.
+  Future<void> _restaurarRascunho() async {
+    final vm = context.read<OrcamentoFormViewModel>();
+    final restaurou = await vm.restaurarRascunho();
+    if (!restaurou || !mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: const Text('Rascunho restaurado: você continuou de onde parou.'),
+      action: SnackBarAction(
+        label: 'Descartar',
+        onPressed: () => vm.descartarRascunho(limparFormulario: true),
+      ),
+    ));
   }
 
   Future<void> _escolherCliente(FormFieldState<int> campo) async {
@@ -95,9 +110,12 @@ class _OrcamentoFormPageState extends State<OrcamentoFormPage> {
         await context.read<OrcamentoViewModel>().salvar(form.montarOrcamento());
     if (!mounted) return;
     if (erro != null) {
+      // O rascunho continua salvo: nada é perdido se a API estiver fora.
       mostrarMensagem(context, erro, erro: true);
       return;
     }
+    await form.descartarRascunho();
+    if (!mounted) return;
     mostrarMensagem(
         context, form.editando ? 'Orçamento atualizado.' : 'Orçamento criado.');
     Navigator.pop(context);

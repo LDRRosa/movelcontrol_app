@@ -6,7 +6,11 @@ class ApiConfig {
   /// flutter run --dart-define=API_URL=http://192.168.0.10:8080
   static const String _urlDefinida = String.fromEnvironment('API_URL');
 
-  static String get baseUrl {
+  /// URL escolhida na tela de Configurações (salva com shared_preferences).
+  static String? _urlPersonalizada;
+
+  /// URL usada quando o usuário não configurou nenhuma.
+  static String get urlPadrao {
     if (_urlDefinida.isNotEmpty) return _urlDefinida;
 
     // No emulador Android, "localhost" é o próprio emulador;
@@ -15,6 +19,17 @@ class ApiConfig {
       return 'http://10.0.2.2:8080';
     }
     return 'http://localhost:8080';
+  }
+
+  static String get baseUrl => _urlPersonalizada ?? urlPadrao;
+
+  static bool get usandoUrlPersonalizada => _urlPersonalizada != null;
+
+  /// Define (ou remove, com null/vazio) a URL personalizada.
+  static void definirUrl(String? url) {
+    final texto = url?.trim() ?? '';
+    _urlPersonalizada =
+        texto.isEmpty ? null : texto.replaceAll(RegExp(r'/+$'), '');
   }
 
   static const Duration timeout = Duration(seconds: 10);

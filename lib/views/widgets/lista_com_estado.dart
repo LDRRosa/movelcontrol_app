@@ -17,8 +17,16 @@ class ListaComEstado extends StatelessWidget {
   /// Conteúdo opcional exibido entre a busca e a lista (ex.: filtros).
   final Widget? cabecalho;
 
+  /// Botão exibido ao lado da busca (ex.: menu de ordenação).
+  final Widget? acaoBusca;
+
+  /// Aviso de modo offline (dados vindos do cache local).
+  final String? avisoOffline;
+
   const ListaComEstado({
     this.cabecalho,
+    this.acaoBusca,
+    this.avisoOffline,
     super.key,
     required this.carregando,
     required this.erro,
@@ -51,16 +59,24 @@ class ListaComEstado extends StatelessWidget {
 
     return Column(
       children: [
+        if (avisoOffline != null) AvisoOffline(texto: avisoOffline!),
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-          child: TextField(
-            decoration: InputDecoration(
-              hintText: dicaBusca,
-              prefixIcon: const Icon(Icons.search),
-              border: const OutlineInputBorder(),
-              isDense: true,
-            ),
-            onChanged: onBuscar,
+          padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: dicaBusca,
+                    prefixIcon: const Icon(Icons.search),
+                    border: const OutlineInputBorder(),
+                    isDense: true,
+                  ),
+                  onChanged: onBuscar,
+                ),
+              ),
+              if (acaoBusca != null) acaoBusca!,
+            ],
           ),
         ),
         if (cabecalho != null) cabecalho!,
@@ -117,6 +133,70 @@ class _Mensagem extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Faixa avisando que os dados exibidos vieram do cache local (sem conexão).
+class AvisoOffline extends StatelessWidget {
+  final String texto;
+
+  const AvisoOffline({super.key, required this.texto});
+
+  @override
+  Widget build(BuildContext context) {
+    final tema = Theme.of(context);
+    return Material(
+      color: tema.colorScheme.tertiaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          children: [
+            Icon(Icons.cloud_off,
+                size: 18, color: tema.colorScheme.onTertiaryContainer),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(texto,
+                  style: tema.textTheme.bodySmall?.copyWith(
+                      color: tema.colorScheme.onTertiaryContainer)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Botão de ordenação genérico (usado ao lado da busca nas listas).
+class MenuOrdenacao<T> extends StatelessWidget {
+  final T selecionada;
+  final List<T> opcoes;
+  final String Function(T) rotulo;
+  final ValueChanged<T> onSelecionar;
+
+  const MenuOrdenacao({
+    super.key,
+    required this.selecionada,
+    required this.opcoes,
+    required this.rotulo,
+    required this.onSelecionar,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<T>(
+      tooltip: 'Ordenar',
+      icon: const Icon(Icons.sort),
+      initialValue: selecionada,
+      onSelected: onSelecionar,
+      itemBuilder: (_) => [
+        for (final opcao in opcoes)
+          CheckedPopupMenuItem<T>(
+            value: opcao,
+            checked: opcao == selecionada,
+            child: Text(rotulo(opcao)),
+          ),
+      ],
     );
   }
 }

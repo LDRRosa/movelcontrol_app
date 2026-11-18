@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/fornecedor.dart';
@@ -8,6 +7,8 @@ import '../../utils/validadores.dart';
 import '../../viewmodels/fornecedor_viewmodel.dart';
 import '../widgets/dialogos.dart';
 import '../widgets/endereco_campos.dart';
+import '../../utils/mascaras.dart';
+import '../../viewmodels/endereco_form_viewmodel.dart';
 
 /// Formulário de cadastro e edição de fornecedor.
 class FornecedorFormPage extends StatefulWidget {
@@ -25,7 +26,7 @@ class _FornecedorFormPageState extends State<FornecedorFormPage> {
   final _cnpj = TextEditingController();
   final _telefone = TextEditingController();
   final _email = TextEditingController();
-  final _endereco = EnderecoControllers();
+  final _endereco = EnderecoFormViewModel();
 
   bool get _editando => widget.fornecedor != null;
 
@@ -35,8 +36,8 @@ class _FornecedorFormPageState extends State<FornecedorFormPage> {
     final f = widget.fornecedor;
     if (f != null) {
       _nome.text = f.nome;
-      _cnpj.text = Formatadores.somenteDigitos(f.cnpj);
-      _telefone.text = f.telefone;
+      _cnpj.text = Formatadores.cnpj(f.cnpj);
+      _telefone.text = Mascaras.telefone.aplicar(f.telefone);
       _email.text = f.email;
       _endereco.preencher(f.endereco);
     }
@@ -101,14 +102,11 @@ class _FornecedorFormPageState extends State<FornecedorFormPage> {
               controller: _cnpj,
               decoration: const InputDecoration(
                 labelText: 'CNPJ *',
-                hintText: 'Somente números (14 dígitos)',
+                hintText: '00.000.000/0000-00',
                 border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(14),
-              ],
+              inputFormatters: [Mascaras.cnpj],
               validator: Validadores.cnpj,
             ),
             const SizedBox(height: 12),
@@ -120,7 +118,7 @@ class _FornecedorFormPageState extends State<FornecedorFormPage> {
                 border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.phone,
-              inputFormatters: [LengthLimitingTextInputFormatter(20)],
+              inputFormatters: [Mascaras.telefone],
               validator: Validadores.telefone,
             ),
             const SizedBox(height: 12),
@@ -132,7 +130,7 @@ class _FornecedorFormPageState extends State<FornecedorFormPage> {
               validator: (v) => Validadores.email(v, max: 100),
             ),
             const SizedBox(height: 24),
-            EnderecoCampos(controllers: _endereco),
+            EnderecoCampos(endereco: _endereco),
             const SizedBox(height: 24),
             FilledButton.icon(
               onPressed: salvando ? null : _salvar,

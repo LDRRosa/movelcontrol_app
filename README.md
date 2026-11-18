@@ -18,7 +18,12 @@ Conceitos aplicados:
 | ViewModel combinando dados | `OrcamentoFormViewModel` (clientes + itens) e `ClienteDetalhePage` (cliente + histórico de orçamentos) |
 | Provider com escopo de tela | `rotas.dart`: formulário de orçamento e detalhe do fornecedor recebem seu próprio `ChangeNotifierProvider` na rota |
 | Validação | `Form` + `GlobalKey<FormState>` + `TextFormField.validator` (`utils/validadores.dart`); `FormField` customizado para cliente e lista de itens do orçamento |
-| Consumo de API | `services/api_client.dart` (pacote `http`, GET/POST/PUT/DELETE) |
+| Consumo de API | `services/api_client.dart` (pacote `http`, GET/POST/PUT/DELETE) e `services/cep_service.dart` (ViaCEP) |
+| Preferências (shared_preferences) | `repositories/configuracoes_repository.dart` + `ConfiguracoesViewModel`: tema claro/escuro, URL da API e estoque mínimo |
+| Banco local (sqflite) | `services/cache_local_service.dart` (singleton) + `repositories/repositorio_com_cache.dart`: cache das listas para uso offline |
+| Rascunho persistente | `OrcamentoFormViewModel` grava o orçamento em edição no shared_preferences e o restaura se o app fechar |
+| Máscaras de digitação | `utils/mascaras.dart`: `TextInputFormatter` para CPF, CNPJ, CEP, telefone e moeda |
+| Gestos | `Dismissible` nas listas: arrastar para excluir com "Desfazer" |
 
 ## Estrutura
 
@@ -83,6 +88,14 @@ E, antes de `<application>`, garanta a permissão de internet:
 ```xml
 <uses-permission android:name="android.permission.INTERNET"/>
 ```
+
+### Persistência local por plataforma
+
+- **Android / iOS / macOS**: `sqflite` nativo.
+- **Windows / Linux**: `sqflite_common_ffi` (inicializado em `services/sqflite_inicializacao.dart`)
+  com a biblioteca SQLite embarcada por `sqlite3_flutter_libs`.
+- **Web**: não há SQLite; o cache offline fica só em memória durante a sessão.
+- A URL da API também pode ser trocada pelo app em **Configurações** (ícone de engrenagem no Início).
 
 ### Flutter Web (CORS)
 

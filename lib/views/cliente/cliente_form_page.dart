@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/cliente.dart';
@@ -8,6 +7,8 @@ import '../../utils/validadores.dart';
 import '../../viewmodels/cliente_viewmodel.dart';
 import '../widgets/dialogos.dart';
 import '../widgets/endereco_campos.dart';
+import '../../utils/mascaras.dart';
+import '../../viewmodels/endereco_form_viewmodel.dart';
 
 /// Formulário de cadastro e edição de cliente (pessoa física).
 class ClienteFormPage extends StatefulWidget {
@@ -25,7 +26,7 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
   final _cpf = TextEditingController();
   final _email = TextEditingController();
   final _telefone = TextEditingController();
-  final _endereco = EnderecoControllers();
+  final _endereco = EnderecoFormViewModel();
 
   bool get _editando => widget.cliente != null;
 
@@ -35,9 +36,9 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
     final c = widget.cliente;
     if (c != null) {
       _nome.text = c.nome;
-      _cpf.text = Formatadores.somenteDigitos(c.cpf);
+      _cpf.text = Formatadores.cpf(c.cpf);
       _email.text = c.email;
-      _telefone.text = c.telefone;
+      _telefone.text = Mascaras.telefone.aplicar(c.telefone);
       _endereco.preencher(c.endereco);
     }
   }
@@ -101,14 +102,11 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
               controller: _cpf,
               decoration: const InputDecoration(
                 labelText: 'CPF *',
-                hintText: 'Somente números (11 dígitos)',
+                hintText: '000.000.000-00',
                 border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(11),
-              ],
+              inputFormatters: [Mascaras.cpf],
               validator: Validadores.cpf,
             ),
             const SizedBox(height: 12),
@@ -128,11 +126,11 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
                 border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.phone,
-              inputFormatters: [LengthLimitingTextInputFormatter(20)],
+              inputFormatters: [Mascaras.telefone],
               validator: Validadores.telefone,
             ),
             const SizedBox(height: 24),
-            EnderecoCampos(controllers: _endereco),
+            EnderecoCampos(endereco: _endereco),
             const SizedBox(height: 24),
             FilledButton.icon(
               onPressed: salvando ? null : _salvar,
